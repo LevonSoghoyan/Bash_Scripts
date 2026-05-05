@@ -37,8 +37,8 @@ while true; do
             ARG2=${params[3]}
 
                 case $OPERATOR in
-                    add) echo "Answer is: $((ARG1 + ARG2))" ;;
-                    sub) echo "Answer is: $((ARG1 - ARG2))" ;;
+                    add) echo "Result: $((ARG1 + ARG2))" ;;
+                    sub) echo "Result: $((ARG1 - ARG2))" ;;
                     *) echo "Available commands: add, sub" ;;
                 esac
             ;;
@@ -57,7 +57,7 @@ while true; do
                 if [[ "$OWNER" == "$USER" ]]; then
                     chmod 600 "$FILE"
                 else
-                    echo "Not permission"
+                    echo "Permission denied"
                 fi
 
             fi
