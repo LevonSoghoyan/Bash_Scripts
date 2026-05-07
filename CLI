@@ -27,9 +27,12 @@ while true; do
     case $COMMAND in
 
         ls)
-     #   mapfile -t array < <( $(find "$PWD"  -maxdepth 1 -type f) )
+            array=($(find "$PWD"  -maxdepth 1))
+            for path in ${array[@]}; do
+            basename "$path"
+            done
      #   echo "$array"
-            ls -a
+ #           ls -a
         ;;
 
         help)
