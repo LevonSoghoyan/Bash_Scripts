@@ -1,0 +1,119 @@
+#!/bin/bash
+
+LOG_FILE=".admin_cli.log"
+
+echo "----------------------"
+echo "      ADMIN  CLI "
+echo "logs saved in .admin_cli.log"
+echo "----------------------"
+
+function cleanup()
+{
+    echo ""
+    echo -n "admin-cli> "
+}
+
+trap cleanup INT
+while true; do
+
+    read -p "admin-cli> " -a params
+    if [[ ${#params[@]} -eq 0 ]]; then
+        continue
+    fi
+
+    echo "Command: ${params[*]}" >> "$LOG_FILE"
+
+    COMMAND=${params[0]}
+    case $COMMAND in
+
+        ls)
+     #   mapfile -t array < <( $(find "$PWD"  -maxdepth 1 -type f) )
+     #   echo "$array"
+            ls -a
+        ;;
+
+        help)
+            echo "find [FILE] [DIR]                         Description: Find [FILE] in [DIR] directory:"y
+            echo "math [ARG1] add(sub) [ARG2]               Description: Calculate [ARG1] +(-) [ARG2]:"
+            echo "secure [FILE]                             Description: If you are owner [FILE] mode changed to 600:"
+            echo "cd    [DIR]                               Description: Move to [DIR] directoy which is inside of current:"
+            echo "pwd                                       Description: Show directory path:"
+            echo "ls                                        Description: Show file list:"
+            echo "exit                                      Description: Close terinal:"
+            echo "help                                      Description: Show this massage:"
+        ;;
+
+        cd)
+            DIR=${params[1]}
+            FULL_PATH="$PWD/$DIR"
+            if [[ -z "$DIR" ]]; then
+                echo "No such directory."
+            elif [[ ! -d "$PWD/$DIR" && "$DIR" != ".." ]]; then
+                echo "No such directory"
+            elif [[ $DIR == ".." ]]; then
+                pushd "${PWD%/*}" > /dev/null
+            else
+                pushd $FULL_PATH > /dev/null
+            fi
+            ;;
+            
+        find)
+            FILE=${params[1]}
+            DIR=${params[2]}
+            if [[ -z "$FILE" || -z "$DIR" ]]; then
+                echo "Usage: find <file> <directory>"
+            elif [[ ! -d "$DIR" ]]; then
+                echo "No such directory."
+            else
+                find "$DIR" -name "$FILE"
+            fi
+            ;;
+
+        math)
+            ARG1=${params[1]}
+            OPERATOR=${params[2]}
+            ARG2=${params[3]}
+            if [[ -z "$ARG1" || -z "$ARG2" || -z "$OPERATOR" ]]; then
+                echo "Usage: math <ARG1>  <OPERATOR> <ARG2>"
+                continue
+            fi
+                case $OPERATOR in
+                    add) echo "Result: $((ARG1 + ARG2))" ;;
+                    sub) echo "Result: $((ARG1 - ARG2))" ;;
+                    *) echo "Available commands: add, sub" ;;
+                esac
+            ;;
+
+	    pwd)
+            echo "$PWD"
+            ;;
+
+        secure)
+
+            FILE=${params[1]}
+
+            if [[ -z "$FILE" ]]; then
+                echo "Input filename."
+            elif [[ ! -f "$FILE" ]]; then
+                echo "No such file or directory."
+            else
+                OWNER=$(stat -c %U "$FILE")
+
+                if [[ "$OWNER" == "$USER" ]]; then
+                    chmod 600 "$FILE"
+                else
+                    echo "Permission denied"
+                fi
+            fi
+            ;;
+
+        exit)
+            break
+            ;;
+
+        *)
+            echo "Unknown command: $COMMAND"
+            ;;
+    esac
+done
+
